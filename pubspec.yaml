@@ -1,13 +1,21 @@
 name: zona_h
-description: "A new Flutter project."
+description: Una aplicación Flutter multi-plataforma.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.18.0 <3.0.0"
 dependencies:
   flutter:
     sdk: flutter
+  google_fonts: ^4.0.0
   sqflite: ^2.0.0+3
-  path: ^1.8.0
-  google_fonts: ^2.3.2
-
+  path: ^1.8.0   # Ensure the path package is also included if you are using join
 dev_dependencies:
+  flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter
+
+flutter:
+  uses-material-design: true

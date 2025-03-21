@@ -1,7 +1,6 @@
 # Project-level configuration.
-cmake_minimum_required(VERSION 3.13)
-project(runner LANGUAGES CXX)
-
+cmake_minimum_required(VERSION 3.10)
+project(zona_h)
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "zona_h")
@@ -126,3 +125,12 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# === Plugin Build ===
+set(PLUGIN_NAME "flutter_app")
+find_package(PkgConfig)
+pkg_search_module(GTK REQUIRED gtk+-3.0)
+
+add_executable(${PLUGIN_NAME})
+
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${GTK_LIBRARIES})
