@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'products_screen.dart';
@@ -62,7 +60,7 @@ class HomeScreen extends StatelessWidget {
                       color: Colors.green,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const CreateOrderScreen()),
+                        MaterialPageRoute(builder: (_) => const OrdersScreen()),
                       ),
                     ),
                     _MenuCard(
