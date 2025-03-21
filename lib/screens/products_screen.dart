@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/database_helper.dart';
 import '../models/product.dart';
+
 class ProductsScreen extends StatefulWidget {
+  const ProductsScreen({super.key});
+
   @override
-  _ProductsScreenState createState() => _ProductsScreenState();
+  State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
   List<Product> _products = [];
+  
   @override
   void initState() {
     super.initState();
@@ -38,19 +42,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Products'),
+        title: const Text('Products'),
       ),
       body: ListView.builder(
-                  itemCount: _products.length,
-                  itemBuilder: (context, index) {
-                    final product = _products[index];
+        itemCount: _products.length,
+        itemBuilder: (context, index) {
+          final product = _products[index];
           return ListTile(
             title: Text(product.name),
             subtitle: Text('Price: \$${product.price}'),
             // More UI for each product
-                        );
-                      },
-                          ),
-                                    );
-                                  }
+          );
+        },
+      ),
+    );
+  }
 }

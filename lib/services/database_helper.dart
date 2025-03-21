@@ -1,17 +1,16 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/product.dart';
+import '../models/order.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
   static Database? _database;
 
-  DatabaseHelper._internal();
-
   Future<Database> get database async {
     if (_database != null) return _database!;
-      _database = await _initDB('zona_h.db');
+    _database = await _initDB('zona_h.db');
     return _database!;
   }
 
@@ -30,7 +29,7 @@ class DatabaseHelper {
   Future _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE products(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         price REAL NOT NULL
       )
@@ -38,16 +37,18 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE orders(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL
+        id TEXT PRIMARY KEY,
+        customer_name TEXT NOT NULL,
+        date TEXT NOT NULL,
+        total REAL NOT NULL
       )
     ''');
 
     await db.execute('''
       CREATE TABLE order_items(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER,
-        product_id INTEGER,
+        order_id TEXT,
+        product_id TEXT,
         quantity INTEGER,
         FOREIGN KEY (order_id) REFERENCES orders(id),
         FOREIGN KEY (product_id) REFERENCES products(id)
@@ -80,14 +81,80 @@ class DatabaseHelper {
     return result.map((json) => Product.fromMap(json)).toList();
   }
 
-  Future<int> insertOrder(Map<String, dynamic> orderData) async {
+  Future<int> insertOrder(Order order) async {
     final db = await database;
-    return await db.insert('orders', orderData);
+    
+    // Iniciar transacción
+    return await db.transaction((txn) async {
+      // Insertar la orden
+      final orderId = await txn.insert('orders', {
+        'id': order.id,
+        'customer_name': order.customerName,
+        'date': order.date.toIso8601String(),
+        'total': order.total,
+      });
+      
+      // Insertar los items de la orden
+      for (var item in order.items) {
+        await txn.insert('order_items', {
+          'order_id': order.id,
+          'product_id': item.product.id,
+          'quantity': item.quantity,
+        });
+      }
+      
+      return orderId;
+    });
   }
-
-  Future<int> insertOrderItem(Map<String, dynamic> orderItemData) async {
+  
+  Future<List<Order>> getOrdersByDate(DateTime date) async {
     final db = await database;
-    return await db.insert('order_items', orderItemData);
+    final dateString = DateTime(date.year, date.month, date.day).toIso8601String().split('T')[0];
+    
+    // Obtener todas las órdenes de la fecha específica
+    final List<Map<String, dynamic>> orderMaps = await db.query(
+      'orders',
+      where: 'date LIKE ?',
+      whereArgs: ['$dateString%'],
+    );
+    
+    // Convertir a lista de órdenes con sus items
+    List<Order> orders = [];
+    
+    for (var orderMap in orderMaps) {
+      final orderId = orderMap['id'];
+      
+      // Obtener los items de esta orden
+      final List<Map<String, dynamic>> itemMaps = await db.rawQuery('''
+        SELECT oi.quantity, p.id, p.name, p.price
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+      ''', [orderId]);
+      
+      // Convertir los items
+      List<OrderItem> items = itemMaps.map((itemMap) {
+        return OrderItem(
+          product: Product(
+            id: itemMap['id'],
+            name: itemMap['name'],
+            price: itemMap['price'],
+          ),
+          quantity: itemMap['quantity'],
+        );
+      }).toList();
+      
+      // Crear la orden con sus items
+      orders.add(Order(
+        id: orderMap['id'],
+        customerName: orderMap['customer_name'],
+        date: DateTime.parse(orderMap['date']),
+        items: items,
+        total: orderMap['total'],
+      ));
+    }
+    
+    return orders;
   }
   
   Future close() async {

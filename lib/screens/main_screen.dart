@@ -1,50 +1,47 @@
 import 'package:flutter/material.dart';
 
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+class MainScreen extends StatefulWidget {
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Welcome to Zona H'),
-        backgroundColor: Colors.green[800],
+        title: Text('Main Screen'),
       ),
-      body: Container(
-        color: Colors.grey[200],
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: Center(
+        child: IndexedStack(
+          index: _selectedIndex,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Delicious food at your doorstep!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.green[700])),
-              onPressed: () {
-                // Navigate to orders screen
-              },
-              child: Text('Go to Orders'),
-            ),
+            Center(child: Text('Home Page')),
+            Center(child: Text('Search Page')),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.store),
-            label: 'Orders',
+            icon: Icon(Icons.home),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Profile',
+            icon: Icon(Icons.search),
+            label: 'Search',
           ),
         ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

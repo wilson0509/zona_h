@@ -123,7 +123,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuevo Pedido'),
+        title: const Text('NUEVO PEDIDO'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

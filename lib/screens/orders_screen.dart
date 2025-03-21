@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+
 class OrdersScreen extends StatelessWidget {
+  const OrdersScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Orders'),
+        title: const Text('Orders'),
       ),
-      body: Center(
+      body: const Center(
         child: Text('No orders available'),
       ),
       floatingActionButton: FloatingActionButton(
@@ -15,7 +18,7 @@ class OrdersScreen extends StatelessWidget {
           // Por ejemplo, navegar a una pantalla de creación de pedidos
         },
         tooltip: 'Nuevo Pedido',
-        child: const Icon(Icons.add), // Mueve el argumento 'child' al final
+        child: const Icon(Icons.add),
       ),
     );
   }
