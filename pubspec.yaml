@@ -4,6 +4,10 @@ description: "A new Flutter project."
 dependencies:
   flutter:
     sdk: flutter
-  sqflite: ^2.0.0+3 # Ensure you use the version that suits your workflow
-  path: ^1.8.0      # Adjust the version as needed
-  # Add more dependencies here
+  sqflite: ^2.0.0+3
+  path: ^1.8.0
+  google_fonts: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

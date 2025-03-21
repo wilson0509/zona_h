@@ -103,40 +103,48 @@ class DatabaseHelper {
   }
 
   Future<List<Order>> getOrdersByDate(DateTime date) async {
-    final db = await database;
-    final startDate = DateTime(date.year, date.month, date.day);
-    final endDate = startDate.add(const Duration(days: 1));
+  final db = await database;
+  final startDate = DateTime(date.year, date.month, date.day);
+  final endDate = startDate.add(const Duration(days: 1));
 
-    final List<Map<String, dynamic>> orderMaps = await db.query(
-      'orders',
-      where: 'date BETWEEN ? AND ?',
-      whereArgs: [startDate.toIso8601String(), endDate.toIso8601String()],
-    );
+  final List<Map<String, dynamic>> orderMaps = await db.query(
+    'orders',
+    where: 'date BETWEEN ? AND ?',
+    whereArgs: [startDate.toIso8601String(), endDate.toIso8601String()],
+  );
 
-    return Future.wait(orderMaps.map((orderMap) async {
-      final List<Map<String, dynamic>> itemMaps = await db.rawQuery('''
-        SELECT oi.quantity, p.* 
-        FROM order_items oi 
-        JOIN products p ON oi.product_id = p.id 
-        WHERE oi.order_id = ?
-      ''', [orderMap['id']]));
+  List<Order> orders = [];
+  
+  for (var orderMap in orderMaps) {
+    final String orderId = orderMap['id'];
+    
+    // Obtener los items de la orden
+    final List<Map<String, dynamic>> itemMaps = await db.rawQuery('''
+      SELECT oi.quantity, p.* 
+      FROM order_items oi 
+      JOIN products p ON oi.product_id = p.id 
+      WHERE oi.order_id = ?
+    ''', [orderId]);
 
-      final items = itemMaps.map((itemMap) => OrderItem(
-        product: Product.fromMap({
-          'id': itemMap['id'],
-          'name': itemMap['name'],
-          'price': itemMap['price'],
-        }),
-        quantity: itemMap['quantity'],
-      )).toList();
+    final List<OrderItem> items = itemMaps.map((itemMap) => OrderItem(
+      product: Product.fromMap({
+        'id': itemMap['id'],
+        'name': itemMap['name'],
+        'price': itemMap['price'],
+      }),
+      quantity: itemMap['quantity'],
+    )).toList();
 
-      return Order(
-        id: orderMap['id'],
-        customerName: orderMap['customerName'],
-        items: items,
-        date: DateTime.parse(orderMap['date']),
-        total: orderMap['total'],
-      );
-    }));
+    orders.add(Order(
+      id: orderId,
+      customerName: orderMap['customerName'],
+      items: items,
+      date: DateTime.parse(orderMap['date']),
+      total: orderMap['total'],
+    ));
   }
+  
+  return orders;
 }
+  }
+

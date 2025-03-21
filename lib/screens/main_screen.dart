@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatelessWidget {
+  const MainScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,12 +25,11 @@ class MainScreen extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.green[700])),
+                  backgroundColor: WidgetStateProperty.all(Colors.green[700])),
               onPressed: () {
                 // Navigate to orders screen
               },
-              child: Text('Place an Order'),
+              child: Text('Go to Orders'),
             ),
           ],
         ),

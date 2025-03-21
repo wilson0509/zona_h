@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'products_screen.dart';
@@ -9,6 +10,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+    
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -16,8 +19,9 @@ class HomeScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).primaryColor.withOpacity(0.8),
-              Theme.of(context).primaryColor,
+              // ignore: deprecated_member_use
+              primaryColor.withOpacity(0.8),
+              primaryColor,
             ],
           ),
         ),
@@ -27,7 +31,7 @@ class HomeScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Text(
-                  'Restaurant Manager',
+                  'Gestor de Restaurante',
                   style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -110,6 +114,7 @@ class _MenuCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
+                // ignore: deprecated_member_use
                 color.withOpacity(0.8),
                 color,
               ],
