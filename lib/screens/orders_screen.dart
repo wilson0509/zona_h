@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zona_h/screens/create_order_screen.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key});
@@ -14,12 +15,18 @@ class OrdersScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Aquí podrías añadir lógica para crear un nuevo pedido
-          // Por ejemplo, navegar a una pantalla de creación de pedidos
-        },
-        tooltip: 'Nuevo Pedido',
-        child: const Icon(Icons.add),
-      ),
+        Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateOrderScreen()),
+    ).then((value) {
+      if (value == true) {
+        // Actualizar datos de pedidos si es necesario
+      }
+    });
+  },
+  tooltip: 'Nuevo Pedido',
+  child: const Icon(Icons.add),
+),
     );
   }
 }
