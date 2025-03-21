@@ -54,6 +54,52 @@ class DatabaseHelper {
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
+    
+    // Insertar datos de prueba
+    await db.insert('products', {
+      'id': '1',
+      'name': 'Hamburguesa',
+      'price': 8.99,
+    });
+    
+    await db.insert('products', {
+      'id': '2',
+      'name': 'Pizza',
+      'price': 12.99,
+    });
+    
+    await db.insert('products', {
+      'id': '3',
+      'name': 'Ensalada',
+      'price': 6.50,
+    });
+    
+    await db.insert('products', {
+      'id': '4',
+      'name': 'Refresco',
+      'price': 2.50,
+    });
+    
+    // Crear un pedido de ejemplo
+    String orderId = 'ord-001';
+    await db.insert('orders', {
+      'id': orderId,
+      'customerName': 'Cliente Ejemplo',
+      'date': DateTime.now().toIso8601String(),
+      'total': 24.48,
+    });
+    
+    await db.insert('order_items', {
+      'order_id': orderId,
+      'product_id': '1',
+      'quantity': 2,
+    });
+    
+    await db.insert('order_items', {
+      'order_id': orderId,
+      'product_id': '4',
+      'quantity': 2,
+    });
   }
 
   // Products CRUD
@@ -75,6 +121,16 @@ class DatabaseHelper {
       'products',
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<void> updateProduct(Product product) async {
+    final db = await database;
+    await db.update(
+      'products',
+      product.toMap(),
+      where: 'id = ?',
+      whereArgs: [product.id],
     );
   }
 
@@ -102,49 +158,114 @@ class DatabaseHelper {
     return order.id;
   }
 
+  Future<void> updateOrderStatus(String id, String status) async {
+    final db = await database;
+    await db.update(
+      'orders',
+      {'status': status},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<List<Order>> getOrdersByDate(DateTime date) async {
-  final db = await database;
-  final startDate = DateTime(date.year, date.month, date.day);
-  final endDate = startDate.add(const Duration(days: 1));
+    final db = await database;
+    final startDate = DateTime(date.year, date.month, date.day);
+    final endDate = startDate.add(const Duration(days: 1));
 
-  final List<Map<String, dynamic>> orderMaps = await db.query(
-    'orders',
-    where: 'date BETWEEN ? AND ?',
-    whereArgs: [startDate.toIso8601String(), endDate.toIso8601String()],
-  );
+    final List<Map<String, dynamic>> orderMaps = await db.query(
+      'orders',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [startDate.toIso8601String(), endDate.toIso8601String()],
+    );
 
-  List<Order> orders = [];
-  
-  for (var orderMap in orderMaps) {
-    final String orderId = orderMap['id'];
+    List<Order> orders = [];
     
-    // Obtener los items de la orden
-    final List<Map<String, dynamic>> itemMaps = await db.rawQuery('''
-      SELECT oi.quantity, p.* 
-      FROM order_items oi 
-      JOIN products p ON oi.product_id = p.id 
-      WHERE oi.order_id = ?
-    ''', [orderId]);
+    for (var orderMap in orderMaps) {
+      final String orderId = orderMap['id'];
+      
+      // Obtener los items de la orden
+      final List<Map<String, dynamic>> itemMaps = await db.rawQuery('''
+        SELECT oi.quantity, p.* 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        WHERE oi.order_id = ?
+      ''', [orderId]);
 
-    final List<OrderItem> items = itemMaps.map((itemMap) => OrderItem(
-      product: Product.fromMap({
-        'id': itemMap['id'],
-        'name': itemMap['name'],
-        'price': itemMap['price'],
-      }),
-      quantity: itemMap['quantity'],
-    )).toList();
+      final List<OrderItem> items = itemMaps.map((itemMap) => OrderItem(
+        product: Product.fromMap({
+          'id': itemMap['id'],
+          'name': itemMap['name'],
+          'price': itemMap['price'],
+        }),
+        quantity: itemMap['quantity'],
+      )).toList();
 
-    orders.add(Order(
-      id: orderId,
-      customerName: orderMap['customerName'],
-      items: items,
-      date: DateTime.parse(orderMap['date']),
-      total: orderMap['total'],
-    ));
+      orders.add(Order(
+        id: orderId,
+        customerName: orderMap['customerName'],
+        items: items,
+        date: DateTime.parse(orderMap['date']),
+        total: orderMap['total'],
+      ));
+    }
+    
+    return orders;
   }
-  
-  return orders;
+
+  Future<List<Order>> getAllOrders() async {
+    final db = await database;
+    final List<Map<String, dynamic>> orderMaps = await db.query('orders');
+
+    List<Order> orders = [];
+    
+    for (var orderMap in orderMaps) {
+      final String orderId = orderMap['id'];
+      
+      final List<Map<String, dynamic>> itemMaps = await db.rawQuery('''
+        SELECT oi.quantity, p.* 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        WHERE oi.order_id = ?
+      ''', [orderId]);
+
+      final List<OrderItem> items = itemMaps.map((itemMap) => OrderItem(
+        product: Product.fromMap({
+          'id': itemMap['id'],
+          'name': itemMap['name'],
+          'price': itemMap['price'],
+        }),
+        quantity: itemMap['quantity'],
+      )).toList();
+
+      orders.add(Order(
+        id: orderId,
+        customerName: orderMap['customerName'],
+        items: items,
+        date: DateTime.parse(orderMap['date']),
+        total: orderMap['total'],
+      ));
+    }
+    
+    return orders;
+  }
+
+  Future<void> deleteOrder(String id) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      // Primero eliminar los items del pedido
+      await txn.delete(
+        'order_items',
+        where: 'order_id = ?',
+        whereArgs: [id],
+      );
+      
+      // Luego eliminar el pedido
+      await txn.delete(
+        'orders',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
+  }
 }
-  }
-
